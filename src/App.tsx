@@ -82,7 +82,7 @@ function Badge({ children, tone = "green" }: { children: ReactNode; tone?: "gree
   return <span className={`badge badge-${tone}`}><i />{children}</span>;
 }
 
-function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (partnerName?: string) => void; activePartner: string; setActivePartner: (name: string) => void }) {
+function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo }: { onPortal: (partnerName?: string) => void; activePartner: string; setActivePartner: (name: string) => void; setPartnerLogo: (logo: string | null) => void }) {
   const [currentAdminView, setCurrentAdminView] = useState<AdminView>("overview");
   const [showForm, setShowForm] = useState(false);
   const [provisioned, setProvisioned] = useState(false);
@@ -125,10 +125,12 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
       };
       await addDoc(collection(db, "partners"), newPartner);
       setActivePartner(orgName);
+      setPartnerLogo(logoFile);
       setProvisioned(true);
     } catch (error) {
       console.error("Error adding partner to Firestore: ", error);
       setActivePartner(orgName);
+      setPartnerLogo(logoFile);
       setProvisioned(true);
     }
   }
@@ -174,7 +176,11 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
           </div>
           <div className="top-actions">
             <button className="icon-button" aria-label="Notifications"><Icon name="bell" /><i /></button>
-            <button className="portal-preview" onClick={() => onPortal(activePartner)}><Icon name="eye" />Preview partner portal</button>
+            <button className="portal-preview" onClick={() => {
+              const currentP = partnersList.find(p => p.name === activePartner);
+              setPartnerLogo(currentP?.logo || null);
+              onPortal(activePartner);
+            }}><Icon name="eye" />Preview partner portal</button>
             <button className="primary-button" onClick={() => { setProvisioned(false); setShowForm(true); }}><Icon name="plus" />Add new partner</button>
           </div>
         </header>
@@ -234,8 +240,12 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                           return (
                             <tr key={p.id || idx}>
                               <td>
-                                <div className="org-cell">
-                                  <span>{p.initials || "BS"}</span>
+                                <div className="org-cell" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                  {p.logo ? (
+                                    <img src={p.logo} alt={p.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid #ddd" }} />
+                                  ) : (
+                                    <span>{p.initials || "BS"}</span>
+                                  )}
                                   <strong>{p.name}</strong>
                                 </div>
                               </td>
@@ -245,7 +255,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                               <td><Badge tone="green">{p.status || "Active"}</Badge></td>
                               <td>
                                 <div className="row-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                                  <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                                  <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); setPartnerLogo(p.logo || null); onPortal(p.name); }}>
                                     Open Portal <Icon name="external" size={14} />
                                   </button>
                                   <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
@@ -256,6 +266,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                                   </button>
                                   <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
                                     setActivePartner(p.name);
+                                    setPartnerLogo(p.logo || null);
                                     onPortal(p.name);
                                   }}>
                                     Get QR Kit
@@ -290,13 +301,18 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                   <tbody>
                     {partnersList.map((p, idx) => (
                       <tr key={p.id || idx}>
-                        <td><strong>{p.name}</strong></td>
+                        <td>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            {p.logo && <img src={p.logo} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />}
+                            <strong>{p.name}</strong>
+                          </div>
+                        </td>
                         <td>{p.owner}</td>
                         <td>{p.contact}</td>
                         <td>{p.nid}</td>
                         <td><Badge tone="green">{p.status || "Active"}</Badge></td>
                         <td>
-                          <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                          <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); setPartnerLogo(p.logo || null); onPortal(p.name); }}>
                             Manage Portal
                           </button>
                         </td>
@@ -315,9 +331,10 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
               <div style={{ marginTop: "20px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
                 {partnersList.map((p, idx) => (
                   <div key={idx} style={{ background: "#fff", padding: "20px", borderRadius: "12px", border: "1px solid #eaeaea", textAlign: "center" }}>
+                    {p.logo && <img src={p.logo} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 10px" }} />}
                     <h3>{p.name}</h3>
                     <p style={{ fontSize: "12px", color: "#666" }}>Owner: {p.owner}</p>
-                    <button className="primary-button" style={{ marginTop: "12px", width: "100%" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                    <button className="primary-button" style={{ marginTop: "12px", width: "100%" }} onClick={() => { setActivePartner(p.name); setPartnerLogo(p.logo || null); onPortal(p.name); }}>
                       View & Download QR Standee
                     </button>
                   </div>
@@ -450,7 +467,7 @@ function QrCode({ large = false }: { large?: boolean }) {
   );
 }
 
-function PartnerHeader({ active, onNav, onAdmin, partnerName }: { active: PartnerView; onNav: (v: PartnerView) => void; onAdmin: () => void; partnerName: string }) {
+function PartnerHeader({ active, onNav, onAdmin, partnerName, partnerLogo }: { active: PartnerView; onNav: (v: PartnerView) => void; onAdmin: () => void; partnerName: string; partnerLogo: string | null }) {
   const links: { key: PartnerView; label: string }[] = [
     { key: "dashboard", label: "Dashboard" },
     { key: "students", label: "Students" },
@@ -461,7 +478,11 @@ function PartnerHeader({ active, onNav, onAdmin, partnerName }: { active: Partne
   return (
     <header className="partner-header">
       <button className="partner-brand" onClick={() => onNav("dashboard")}>
-        <span className="partner-logo">{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span>
+        {partnerLogo ? (
+          <img src={partnerLogo} alt={partnerName} style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: "1px solid #ddd" }} />
+        ) : (
+          <span className="partner-logo">{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span>
+        )}
         <span><strong>{partnerName || "British Study Centre"}</strong><small>Official EduAimers Partner</small></span>
       </button>
       <nav>
@@ -718,7 +739,7 @@ function PayoutsPage() {
   );
 }
 
-function QrKitPage({ partnerName }: { partnerName: string }) {
+function QrKitPage({ partnerName, partnerLogo }: { partnerName: string; partnerLogo: string | null }) {
   const standeeRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const shareLink = `${window.location.origin}/?partner=${encodeURIComponent(partnerName)}`;
@@ -758,7 +779,14 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
           <p className="zone-label">Live print preview · Standee design</p>
           <div className="standee" ref={standeeRef} style={{ background: "#fff", padding: "24px" }}>
             <div className="standee-top">
-              <div className="standee-brand"><span>{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span><strong>{partnerName || "British Study Centre"}</strong></div>
+              <div className="standee-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {partnerLogo ? (
+                  <img src={partnerLogo} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
+                ) : (
+                  <span>{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span>
+                )}
+                <strong>{partnerName || "British Study Centre"}</strong>
+              </div>
               <small>OFFICIAL PARTNER</small>
             </div>
             <div className="standee-body">
@@ -790,16 +818,16 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
   );
 }
 
-function PartnerPortal({ onAdmin, partnerName }: { onAdmin: () => void; partnerName: string }) {
+function PartnerPortal({ onAdmin, partnerName, partnerLogo }: { onAdmin: () => void; partnerName: string; partnerLogo: string | null }) {
   const [page, setPage] = useState<PartnerView>("dashboard");
   return (
     <div className="partner-shell">
-      <PartnerHeader active={page} onNav={setPage} onAdmin={onAdmin} partnerName={partnerName} />
+      <PartnerHeader active={page} onNav={setPage} onAdmin={onAdmin} partnerName={partnerName} partnerLogo={partnerLogo} />
       <main>
         {page === "dashboard" && <PartnerDashboard partnerName={partnerName} onNav={setPage} />}
         {page === "students" && <StudentsPage />}
         {page === "payouts" && <PayoutsPage />}
-        {page === "qr" && <QrKitPage partnerName={partnerName} />}
+        {page === "qr" && <QrKitPage partnerName={partnerName} partnerLogo={partnerLogo} />}
         {page === "support" && (
           <div className="partner-content page-content support-page" style={{ padding: "40px", textAlign: "center" }}>
             <span><Icon name="headset" size={36} /></span>
@@ -822,19 +850,21 @@ function PartnerPortal({ onAdmin, partnerName }: { onAdmin: () => void; partnerN
 export default function App() {
   const [mode, setMode] = useState<"admin" | "partner">("admin");
   const [activePartner, setActivePartner] = useState("British Study Centre");
+  const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const partnerParam = params.get("partner");
     if (partnerParam) {
-      setActivePartner(decodeURIComponent(partnerParam));
+      const decodedName = decodeURIComponent(partnerParam);
+      setActivePartner(decodedName);
       setMode("partner");
     }
   }, []);
 
   return mode === "admin" ? (
-    <AdminPanel onPortal={(name) => { if (name) setActivePartner(name); setMode("partner"); }} activePartner={activePartner} setActivePartner={setActivePartner} />
+    <AdminPanel onPortal={(name) => { if (name) setActivePartner(name); setMode("partner"); }} activePartner={activePartner} setActivePartner={setActivePartner} setPartnerLogo={setPartnerLogo} />
   ) : (
-    <PartnerPortal onAdmin={() => setMode("admin")} partnerName={activePartner} />
+    <PartnerPortal onAdmin={() => setMode("admin")} partnerName={activePartner} partnerLogo={partnerLogo} />
   );
 }
