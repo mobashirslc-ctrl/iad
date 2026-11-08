@@ -46,7 +46,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     external: <><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" /></>,
     eye: <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
     file: <><path d="M6 2h8l4 4v16H6z" /><path d="M14 2v5h5M9 13h6M9 17h6" /></>,
-    gear: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.56 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3v-4h.09A1.7 1.7 0 0 0 4.6 8.56a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83-2.83.06-.06A1.7 1.7 0 0 0 19.4 9c.15.61.66 1.08 1.29 1.19H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z" /></>,
+    gear: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.56 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3v-4h.09A1.7 1.7 0 0 0 4.6 8.56a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83-2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.15.61.66 1.08 1.29 1.19H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z" /></>,
     grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
     headset: <><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><path d="M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1zM17 20c0 1-1 2-3 2" /></>,
     home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v11h14V10M9 21v-7h6v7" /></>,
@@ -141,8 +141,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
     }
   };
 
-  const partnerSlug = (orgName || "british-study").toLowerCase().replace(/\s+/g, '-');
-  const partnerShareableLink = `${window.location.origin}/partner/${partnerSlug}`;
+  const partnerShareableLink = `${window.location.origin}/?partner=${encodeURIComponent(orgName || "British Study Centre")}`;
 
   return (
     <div className="admin-shell">
@@ -206,7 +205,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
             <div className="card-heading table-heading">
               <div>
                 <h3>Active IELTS partners</h3>
-                <p>Manage your white-label partner network & generate dedicated path links</p>
+                <p>Manage your white-label partner network & generate live Vercel links</p>
               </div>
             </div>
             <div className="table-scroll">
@@ -226,8 +225,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                     <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No partners found. Click "Add new partner" above.</td></tr>
                   ) : (
                     partnersList.map((p, idx) => {
-                      const slug = p.name.toLowerCase().replace(/\s+/g, '-');
-                      const rowLink = `${window.location.origin}/partner/${slug}`;
+                      const rowLink = `${window.location.origin}/?partner=${encodeURIComponent(p.name)}`;
                       return (
                         <tr key={p.id || idx}>
                           <td>
@@ -247,7 +245,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                               </button>
                               <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
                                 navigator.clipboard?.writeText(rowLink);
-                                alert(`Partner Link copied to clipboard:\n${rowLink}`);
+                                alert(`Live Partner Link copied to clipboard:\n${rowLink}`);
                               }}>
                                 Copy Link
                               </button>
@@ -287,10 +285,10 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
               <div className="success-view">
                 <div className="success-orbit"><span><Icon name="check" size={32} /></span></div>
                 <h3>Partner Portal is live</h3>
-                <p>The dedicated partner portal and clean shareable link have been generated successfully.</p>
+                <p>The dedicated partner portal and live Vercel shareable link have been generated successfully.</p>
                 <div className="domain-card">
                   <div>
-                    <span>Shareable Live Link</span>
+                    <span>Shareable Vercel Link</span>
                     <strong style={{ fontSize: "12px", wordBreak: "break-all" }}>{partnerShareableLink}</strong>
                   </div>
                   <button onClick={() => { 
@@ -302,13 +300,13 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                 </div>
                 <div className="success-links">
                   <button onClick={() => { setShowForm(false); onPortal(activePartner); }}><Icon name="external" />Open partner portal now</button>
-                  <button onClick={() => window.print()}><Icon name="download" />Download QR Print PDF</button>
+                  <button onClick={() => window.print()}><Icon name="download" />Download QR Kit (PDF)</button>
                 </div>
                 <button className="primary-button full" onClick={() => setShowForm(false)}>Done</button>
               </div>
             ) : (
               <form className="partner-form" onSubmit={provision}>
-                <p className="form-intro">Enter organization details. A clean path link will be generated instantly.</p>
+                <p className="form-intro">Enter organization details. A live Vercel link will be generated instantly.</p>
                 <div className="form-grid">
                   <label className="full">Organization name<input required value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="e.g. British Study Centre" /></label>
                   <label>Owner name<input required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Full legal name" /></label>
@@ -631,8 +629,7 @@ function PayoutsPage() {
 }
 
 function QrKitPage({ partnerName }: { partnerName: string }) {
-  const slug = partnerName.toLowerCase().replace(/\s+/g, '-');
-  const shareLink = `${window.location.origin}/partner/${slug}`;
+  const shareLink = `${window.location.origin}/?partner=${encodeURIComponent(partnerName)}`;
   return (
     <div className="partner-content page-content">
       <div className="section-heading page-title">
@@ -663,7 +660,7 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
             <li><span><Icon name="check" /></span><div><strong>High-resolution A4 PDF</strong><small>300 DPI, print-ready with bleed</small></div></li>
             <li><span><Icon name="check" /></span><div><strong>Unique tracking enabled</strong><small>All leads flow directly into your live dashboard</small></div></li>
           </ul>
-          <button className="primary-button full" onClick={() => window.print()}><Icon name="download" />Download A4 PDF <span>2.4 MB</span></button>
+          <button className="primary-button full" onClick={() => window.print()}><Icon name="download" />Download A4 PDF (Print / PDF) <span>2.4 MB</span></button>
           <button className="secondary-button full" onClick={() => {
             navigator.clipboard?.writeText(shareLink);
             alert(`Partner portal link copied!\n${shareLink}`);
@@ -695,7 +692,7 @@ function PartnerPortal({ onAdmin, partnerName }: { onAdmin: () => void; partnerN
         )}
       </main>
       <footer className="partner-footer">
-      <BrandMark />
+        <BrandMark />
         <p>© 2026 EduAimers. Secure partner infrastructure.</p>
         <div><a href="#privacy">Privacy</a><a href="#terms">Terms</a><span><i />Systems operational</span></div>
       </footer>
@@ -707,17 +704,11 @@ export default function App() {
   const [mode, setMode] = useState<"admin" | "partner">("admin");
   const [activePartner, setActivePartner] = useState("British Study Centre");
 
-  // Automatically detect partner path (e.g. /partner/belivers-academy) from URL
   useEffect(() => {
-    const pathParts = window.location.pathname.split("/");
-    if (pathParts.includes("partner") && pathParts[pathParts.indexOf("partner") + 1]) {
-      const slug = pathParts[pathParts.indexOf("partner") + 1];
-      // Convert slug back to normal title format (e.g., "belivers-academy" -> "Belivers Academy")
-      const formattedName = slug
-        .split("-")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-      setActivePartner(formattedName);
+    const params = new URLSearchParams(window.location.search);
+    const partnerParam = params.get("partner");
+    if (partnerParam) {
+      setActivePartner(decodeURIComponent(partnerParam));
       setMode("partner");
     }
   }, []);
