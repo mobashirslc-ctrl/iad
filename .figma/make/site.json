@@ -1,0 +1,10 @@
+{
+  "description": "Manage IELTS partner centers, track student progress, and oversee payouts with branded portals and downloadable QR standees for partner owners.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
