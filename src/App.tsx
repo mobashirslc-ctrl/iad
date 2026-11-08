@@ -141,8 +141,8 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
     }
   };
 
-  const currentDomain = window.location.origin;
-  const partnerShareableLink = `${currentDomain}/?partner=${encodeURIComponent(orgName || "British Study Centre")}`;
+  const partnerSlug = (orgName || "british-study").toLowerCase().replace(/\s+/g, '-');
+  const partnerShareableLink = `${window.location.origin}/partner/${partnerSlug}`;
 
   return (
     <div className="admin-shell">
@@ -206,7 +206,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
             <div className="card-heading table-heading">
               <div>
                 <h3>Active IELTS partners</h3>
-                <p>Manage your white-label partner network & generate live shareable links</p>
+                <p>Manage your white-label partner network & generate dedicated path links</p>
               </div>
             </div>
             <div className="table-scroll">
@@ -226,7 +226,8 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                     <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No partners found. Click "Add new partner" above.</td></tr>
                   ) : (
                     partnersList.map((p, idx) => {
-                      const rowLink = `${window.location.origin}/?partner=${encodeURIComponent(p.name)}`;
+                      const slug = p.name.toLowerCase().replace(/\s+/g, '-');
+                      const rowLink = `${window.location.origin}/partner/${slug}`;
                       return (
                         <tr key={p.id || idx}>
                           <td>
@@ -246,7 +247,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                               </button>
                               <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
                                 navigator.clipboard?.writeText(rowLink);
-                                alert(`Live Partner Link copied to clipboard:\n${rowLink}`);
+                                alert(`Partner Link copied to clipboard:\n${rowLink}`);
                               }}>
                                 Copy Link
                               </button>
@@ -286,7 +287,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
               <div className="success-view">
                 <div className="success-orbit"><span><Icon name="check" size={32} /></span></div>
                 <h3>Partner Portal is live</h3>
-                <p>The dedicated partner portal and unique shareable link have been generated successfully.</p>
+                <p>The dedicated partner portal and clean shareable link have been generated successfully.</p>
                 <div className="domain-card">
                   <div>
                     <span>Shareable Live Link</span>
@@ -307,7 +308,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
               </div>
             ) : (
               <form className="partner-form" onSubmit={provision}>
-                <p className="form-intro">Enter organization details. A live shareable workspace link will be generated instantly.</p>
+                <p className="form-intro">Enter organization details. A clean path link will be generated instantly.</p>
                 <div className="form-grid">
                   <label className="full">Organization name<input required value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="e.g. British Study Centre" /></label>
                   <label>Owner name<input required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Full legal name" /></label>
@@ -630,7 +631,8 @@ function PayoutsPage() {
 }
 
 function QrKitPage({ partnerName }: { partnerName: string }) {
-  const shareLink = `${window.location.origin}/?partner=${encodeURIComponent(partnerName)}`;
+  const slug = partnerName.toLowerCase().replace(/\s+/g, '-');
+  const shareLink = `${window.location.origin}/partner/${slug}`;
   return (
     <div className="partner-content page-content">
       <div className="section-heading page-title">
@@ -664,7 +666,7 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
           <button className="primary-button full" onClick={() => window.print()}><Icon name="download" />Download A4 PDF <span>2.4 MB</span></button>
           <button className="secondary-button full" onClick={() => {
             navigator.clipboard?.writeText(shareLink);
-            alert(`Partner portal live link copied!\n${shareLink}`);
+            alert(`Partner portal link copied!\n${shareLink}`);
           }}><Icon name="send" />Share digital QR link</button>
         </aside>
       </section>
@@ -693,7 +695,7 @@ function PartnerPortal({ onAdmin, partnerName }: { onAdmin: () => void; partnerN
         )}
       </main>
       <footer className="partner-footer">
-        <BrandMark />
+      <BrandMark />
         <p>© 2026 EduAimers. Secure partner infrastructure.</p>
         <div><a href="#privacy">Privacy</a><a href="#terms">Terms</a><span><i />Systems operational</span></div>
       </footer>
@@ -705,12 +707,17 @@ export default function App() {
   const [mode, setMode] = useState<"admin" | "partner">("admin");
   const [activePartner, setActivePartner] = useState("British Study Centre");
 
-  // Automatically detect partner query parameter from URL (e.g. ?partner=Global+Aspirations)
+  // Automatically detect partner path (e.g. /partner/belivers-academy) from URL
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const partnerParam = params.get("partner");
-    if (partnerParam) {
-      setActivePartner(decodeURIComponent(partnerParam));
+    const pathParts = window.location.pathname.split("/");
+    if (pathParts.includes("partner") && pathParts[pathParts.indexOf("partner") + 1]) {
+      const slug = pathParts[pathParts.indexOf("partner") + 1];
+      // Convert slug back to normal title format (e.g., "belivers-academy" -> "Belivers Academy")
+      const formattedName = slug
+        .split("-")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      setActivePartner(formattedName);
       setMode("partner");
     }
   }, []);
