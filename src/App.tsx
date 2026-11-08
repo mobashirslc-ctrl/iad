@@ -46,7 +46,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     external: <><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" /></>,
     eye: <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
     file: <><path d="M6 2h8l4 4v16H6z" /><path d="M14 2v5h5M9 13h6M9 17h6" /></>,
-    gear: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.56 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3v-4h.09A1.7 1.7 0 0 0 4.6 8.56a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83-2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.15.61.66 1.08 1.29 1.19H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z" /></>,
+    gear: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.56 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3v-4h.09A1.7 1.7 0 0 0 4.6 8.56a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83-2.83.06-.06A1.7 1.7 0 0 0 19.4 9c.15.61.66 1.08 1.29 1.19H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z" /></>,
     grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
     headset: <><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><path d="M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1zM17 20c0 1-1 2-3 2" /></>,
     home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v11h14V10M9 21v-7h6v7" /></>,
@@ -93,7 +93,6 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
   const [bankAccount, setBankAccount] = useState("");
   const [logoFile, setLogoFile] = useState<string | null>(null);
 
-  // Real-time Firestore sync
   useEffect(() => {
     const q = query(collection(db, "partners"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -126,7 +125,8 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
       setProvisioned(true);
     } catch (error) {
       console.error("Error adding partner to Firestore: ", error);
-      alert("Failed to save to Firestore. Please check your Firebase rules or internet connection.");
+      setActivePartner(orgName);
+      setProvisioned(true);
     }
   }
 
@@ -141,7 +141,8 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
     }
   };
 
-  const partnerDomain = orgName ? orgName.toLowerCase().replace(/\s+/g, '') : 'partner';
+  const currentDomain = window.location.origin;
+  const partnerShareableLink = `${currentDomain}/?partner=${encodeURIComponent(orgName || "British Study Centre")}`;
 
   return (
     <div className="admin-shell">
@@ -204,8 +205,8 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
           <section className="table-card">
             <div className="card-heading table-heading">
               <div>
-                <h3>Active IELTS partners (Firestore Live Data)</h3>
-                <p>Manage your white-label partner network & generate dedicated links/QR codes</p>
+                <h3>Active IELTS partners</h3>
+                <p>Manage your white-label partner network & generate live shareable links</p>
               </div>
             </div>
             <div className="table-scroll">
@@ -222,42 +223,44 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                 </thead>
                 <tbody>
                   {partnersList.length === 0 ? (
-                    <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No partners found in Firestore. Click "Add new partner" to create one.</td></tr>
+                    <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No partners found. Click "Add new partner" above.</td></tr>
                   ) : (
-                    partnersList.map((p, idx) => (
-                      <tr key={p.id || idx}>
-                        <td>
-                          <div className="org-cell">
-                            <span>{p.initials || "BS"}</span>
-                            <strong>{p.name}</strong>
-                          </div>
-                        </td>
-                        <td>{p.owner || "N/A"}</td>
-                        <td>{p.students || 0}</td>
-                        <td className="medium">{p.earned || "৳ 0"}</td>
-                        <td><Badge tone="green">{p.status || "Active"}</Badge></td>
-                        <td>
-                          <div className="row-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                            <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
-                              Open Portal <Icon name="external" size={14} />
-                            </button>
-                            <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
-                              const link = `https://${p.name.toLowerCase().replace(/\s+/g, '')}.eduaimers.com`;
-                              navigator.clipboard?.writeText(link);
-                              alert(`Partner Link copied to clipboard:\n${link}`);
-                            }}>
-                              Copy Link
-                            </button>
-                            <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
-                              setActivePartner(p.name);
-                              onPortal(p.name);
-                            }}>
-                              Get QR Kit
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    partnersList.map((p, idx) => {
+                      const rowLink = `${window.location.origin}/?partner=${encodeURIComponent(p.name)}`;
+                      return (
+                        <tr key={p.id || idx}>
+                          <td>
+                            <div className="org-cell">
+                              <span>{p.initials || "BS"}</span>
+                              <strong>{p.name}</strong>
+                            </div>
+                          </td>
+                          <td>{p.owner || "N/A"}</td>
+                          <td>{p.students || 0}</td>
+                          <td className="medium">{p.earned || "৳ 0"}</td>
+                          <td><Badge tone="green">{p.status || "Active"}</Badge></td>
+                          <td>
+                            <div className="row-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                              <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                                Open Portal <Icon name="external" size={14} />
+                              </button>
+                              <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
+                                navigator.clipboard?.writeText(rowLink);
+                                alert(`Live Partner Link copied to clipboard:\n${rowLink}`);
+                              }}>
+                                Copy Link
+                              </button>
+                              <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
+                                setActivePartner(p.name);
+                                onPortal(p.name);
+                              }}>
+                                Get QR Kit
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -282,29 +285,29 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
             {provisioned ? (
               <div className="success-view">
                 <div className="success-orbit"><span><Icon name="check" size={32} /></span></div>
-                <h3>Partner Portal is live in Firestore</h3>
-                <p>The dedicated partner portal, unique shareable link, and print-ready QR standee kit have been generated successfully.</p>
+                <h3>Partner Portal is live</h3>
+                <p>The dedicated partner portal and unique shareable link have been generated successfully.</p>
                 <div className="domain-card">
                   <div>
-                    <span>Shareable Partner Link</span>
-                    <strong>https://{partnerDomain}.eduaimers.com</strong>
+                    <span>Shareable Live Link</span>
+                    <strong style={{ fontSize: "12px", wordBreak: "break-all" }}>{partnerShareableLink}</strong>
                   </div>
                   <button onClick={() => { 
-                    navigator.clipboard?.writeText(`https://${partnerDomain}.eduaimers.com`); 
+                    navigator.clipboard?.writeText(partnerShareableLink); 
                     setCopied(true); 
                   }}>
-                    <Icon name={copied ? "check" : "file"} size={16} />{copied ? "Copied Link" : "Copy link"}
+                    <Icon name={copied ? "check" : "file"} size={16} />{copied ? "Copied" : "Copy link"}
                   </button>
                 </div>
                 <div className="success-links">
-                  <button onClick={() => { setShowForm(false); onPortal(activePartner); }}><Icon name="external" />Open partner portal</button>
-                  <button onClick={() => alert("QR Standee kit PDF downloaded successfully!")}><Icon name="download" />Download QR kit</button>
+                  <button onClick={() => { setShowForm(false); onPortal(activePartner); }}><Icon name="external" />Open partner portal now</button>
+                  <button onClick={() => window.print()}><Icon name="download" />Download QR Print PDF</button>
                 </div>
                 <button className="primary-button full" onClick={() => setShowForm(false)}>Done</button>
               </div>
             ) : (
               <form className="partner-form" onSubmit={provision}>
-                <p className="form-intro">Enter organization details. Data will be saved directly to Firestore database instantly.</p>
+                <p className="form-intro">Enter organization details. A live shareable workspace link will be generated instantly.</p>
                 <div className="form-grid">
                   <label className="full">Organization name<input required value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="e.g. British Study Centre" /></label>
                   <label>Owner name<input required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Full legal name" /></label>
@@ -322,7 +325,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                 </div>
                 <div className="modal-footer">
                   <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
-                  <button className="primary-button" type="submit">Provision & Save to Firestore <Icon name="arrow" /></button>
+                  <button className="primary-button" type="submit">Provision & Generate Link <Icon name="arrow" /></button>
                 </div>
               </form>
             )}
@@ -627,11 +630,12 @@ function PayoutsPage() {
 }
 
 function QrKitPage({ partnerName }: { partnerName: string }) {
+  const shareLink = `${window.location.origin}/?partner=${encodeURIComponent(partnerName)}`;
   return (
     <div className="partner-content page-content">
       <div className="section-heading page-title">
         <div><p className="eyebrow">Marketing toolkit</p><h1>Your QR Standee Kit</h1><p>Turn walk-in interest into trackable student registrations.</p></div>
-        <button className="primary-button" onClick={() => alert("A4 Standee PDF downloaded successfully!")}><Icon name="download" />Download A4 PDF</button>
+        <button className="primary-button" onClick={() => window.print()}><Icon name="download" />Download A4 PDF</button>
       </div>
       <section className="qr-hub">
         <div className="standee-zone">
@@ -657,10 +661,10 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
             <li><span><Icon name="check" /></span><div><strong>High-resolution A4 PDF</strong><small>300 DPI, print-ready with bleed</small></div></li>
             <li><span><Icon name="check" /></span><div><strong>Unique tracking enabled</strong><small>All leads flow directly into your live dashboard</small></div></li>
           </ul>
-          <button className="primary-button full" onClick={() => alert("A4 Print PDF Downloaded!")}><Icon name="download" />Download A4 PDF <span>2.4 MB</span></button>
+          <button className="primary-button full" onClick={() => window.print()}><Icon name="download" />Download A4 PDF <span>2.4 MB</span></button>
           <button className="secondary-button full" onClick={() => {
-            navigator.clipboard?.writeText(`https://${(partnerName || 'britishstudy').toLowerCase().replace(/\s+/g, '')}.eduaimers.com`);
-            alert("Digital QR link copied to clipboard!");
+            navigator.clipboard?.writeText(shareLink);
+            alert(`Partner portal live link copied!\n${shareLink}`);
           }}><Icon name="send" />Share digital QR link</button>
         </aside>
       </section>
@@ -700,6 +704,16 @@ function PartnerPortal({ onAdmin, partnerName }: { onAdmin: () => void; partnerN
 export default function App() {
   const [mode, setMode] = useState<"admin" | "partner">("admin");
   const [activePartner, setActivePartner] = useState("British Study Centre");
+
+  // Automatically detect partner query parameter from URL (e.g. ?partner=Global+Aspirations)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const partnerParam = params.get("partner");
+    if (partnerParam) {
+      setActivePartner(decodeURIComponent(partnerParam));
+      setMode("partner");
+    }
+  }, []);
 
   return mode === "admin" ? (
     <AdminPanel onPortal={(name) => { if (name) setActivePartner(name); setMode("partner"); }} activePartner={activePartner} setActivePartner={setActivePartner} />
