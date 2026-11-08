@@ -1,8 +1,10 @@
-import { FormEvent, ReactNode, useMemo, useState, useEffect } from "react";
+import { FormEvent, ReactNode, useMemo, useState, useEffect, useRef } from "react";
 import { db } from "./firebase";
 import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import html2canvas from "html2canvas";
 
-type View = "dashboard" | "students" | "payouts" | "qr" | "support";
+type AdminView = "overview" | "partners" | "qr" | "payouts" | "support" | "settings";
+type PartnerView = "dashboard" | "students" | "payouts" | "qr" | "support";
 type IconName =
   | "arrow"
   | "bell"
@@ -81,6 +83,7 @@ function Badge({ children, tone = "green" }: { children: ReactNode; tone?: "gree
 }
 
 function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (partnerName?: string) => void; activePartner: string; setActivePartner: (name: string) => void }) {
+  const [currentAdminView, setCurrentAdminView] = useState<AdminView>("overview");
   const [showForm, setShowForm] = useState(false);
   const [provisioned, setProvisioned] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -149,13 +152,13 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
         <div className="admin-logo"><BrandMark /></div>
         <nav className="side-nav" aria-label="Admin navigation">
           <p>Workspace</p>
-          <button className="active"><Icon name="grid" />Overview</button>
-          <button><Icon name="building" />Partners<span className="nav-count">{partnersList.length}</span></button>
-          <button><Icon name="qr" />QR Standees</button>
-          <button><Icon name="wallet" />Global Payouts</button>
+          <button className={currentAdminView === "overview" ? "active" : ""} onClick={() => setCurrentAdminView("overview")}><Icon name="grid" />Overview</button>
+          <button className={currentAdminView === "partners" ? "active" : ""} onClick={() => setCurrentAdminView("partners")}><Icon name="building" />Partners<span className="nav-count">{partnersList.length}</span></button>
+          <button className={currentAdminView === "qr" ? "active" : ""} onClick={() => setCurrentAdminView("qr")}><Icon name="qr" />QR Standees</button>
+          <button className={currentAdminView === "payouts" ? "active" : ""} onClick={() => setCurrentAdminView("payouts")}><Icon name="wallet" />Global Payouts</button>
           <p>System</p>
-          <button><Icon name="headset" />Support</button>
-          <button><Icon name="gear" />Settings</button>
+          <button className={currentAdminView === "support" ? "active" : ""} onClick={() => setCurrentAdminView("support")}><Icon name="headset" />Support</button>
+          <button className={currentAdminView === "settings" ? "active" : ""} onClick={() => setCurrentAdminView("settings")}><Icon name="gear" />Settings</button>
         </nav>
         <div className="admin-profile">
           <span className="avatar dark">SA</span>
@@ -176,95 +179,183 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
           </div>
         </header>
         <div className="admin-content">
-          <section className="page-heading">
-            <div>
-              <p className="eyebrow">Master Control Panel</p>
-              <h1>Good morning, Admin.</h1>
-              <p>Manage white-label IELTS partner portals and live tracking.</p>
-            </div>
-            <div className="live-indicator"><span />All systems operational</div>
-          </section>
-          
-          <section className="stat-grid admin-stats">
-            {[
-              { label: "Active partners", value: partnersList.length.toString(), change: "Live Firestore Sync", icon: "building" as IconName },
-              { label: "Total students", value: "2,846", change: "+12.4% vs last month", icon: "students" as IconName },
-              { label: "Payouts processed", value: "৳ 42.8L", change: "+8.2% vs last month", icon: "wallet" as IconName },
-              { label: "QR scans", value: "8,942", change: "+21.7% vs last month", icon: "qr" as IconName },
-            ].map((item) => (
-              <article className="stat-card" key={item.label}>
-                <div className="stat-top"><span className="stat-icon"><Icon name={item.icon} /></span><Icon name="more" /></div>
-                <p>{item.label}</p>
-                <h2>{item.value}</h2>
-                <small><b>↑</b> {item.change}</small>
-              </article>
-            ))}
-          </section>
+          {currentAdminView === "overview" && (
+            <>
+              <section className="page-heading">
+                <div>
+                  <p className="eyebrow">Master Control Panel</p>
+                  <h1>Good morning, Admin.</h1>
+                  <p>Manage white-label IELTS partner portals and live tracking.</p>
+                </div>
+                <div className="live-indicator"><span />All systems operational</div>
+              </section>
+              
+              <section className="stat-grid admin-stats">
+                {[
+                  { label: "Active partners", value: partnersList.length.toString(), change: "Live Firestore Sync", icon: "building" as IconName },
+                  { label: "Total students", value: "2,846", change: "+12.4% vs last month", icon: "students" as IconName },
+                  { label: "Payouts processed", value: "৳ 42.8L", change: "+8.2% vs last month", icon: "wallet" as IconName },
+                  { label: "QR scans", value: "8,942", change: "+21.7% vs last month", icon: "qr" as IconName },
+                ].map((item) => (
+                  <article className="stat-card" key={item.label}>
+                    <div className="stat-top"><span className="stat-icon"><Icon name={item.icon} /></span><Icon name="more" /></div>
+                    <p>{item.label}</p>
+                    <h2>{item.value}</h2>
+                    <small><b>↑</b> {item.change}</small>
+                  </article>
+                ))}
+              </section>
 
-          <section className="table-card">
-            <div className="card-heading table-heading">
-              <div>
-                <h3>Active IELTS partners</h3>
-                <p>Manage your white-label partner network & generate live Vercel links</p>
+              <section className="table-card">
+                <div className="card-heading table-heading">
+                  <div>
+                    <h3>Active IELTS partners</h3>
+                    <p>Manage your white-label partner network & generate live Vercel links</p>
+                  </div>
+                </div>
+                <div className="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Organization</th>
+                        <th>Owner</th>
+                        <th>Students</th>
+                        <th>Total earned</th>
+                        <th>Status</th>
+                        <th>Quick actions & Links</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {partnersList.length === 0 ? (
+                        <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No partners found. Click "Add new partner" above.</td></tr>
+                      ) : (
+                        partnersList.map((p, idx) => {
+                          const rowLink = `${window.location.origin}/?partner=${encodeURIComponent(p.name)}`;
+                          return (
+                            <tr key={p.id || idx}>
+                              <td>
+                                <div className="org-cell">
+                                  <span>{p.initials || "BS"}</span>
+                                  <strong>{p.name}</strong>
+                                </div>
+                              </td>
+                              <td>{p.owner || "N/A"}</td>
+                              <td>{p.students || 0}</td>
+                              <td className="medium">{p.earned || "৳ 0"}</td>
+                              <td><Badge tone="green">{p.status || "Active"}</Badge></td>
+                              <td>
+                                <div className="row-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                  <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                                    Open Portal <Icon name="external" size={14} />
+                                  </button>
+                                  <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
+                                    navigator.clipboard?.writeText(rowLink);
+                                    alert(`Live Partner Link copied to clipboard:\n${rowLink}`);
+                                  }}>
+                                    Copy Link
+                                  </button>
+                                  <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
+                                    setActivePartner(p.name);
+                                    onPortal(p.name);
+                                  }}>
+                                    Get QR Kit
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </>
+          )}
+
+          {currentAdminView === "partners" && (
+            <section className="table-card" style={{ marginTop: "20px" }}>
+              <div className="card-heading table-heading">
+                <div>
+                  <h3>All Partners Directory</h3>
+                  <p>Complete control panel for registered educational institutions and agencies</p>
+                </div>
+                <button className="primary-button" onClick={() => { setProvisioned(false); setShowForm(true); }}><Icon name="plus" />Add Partner</button>
+              </div>
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr><th>Organization</th><th>Owner</th><th>Contact</th><th>NID</th><th>Status</th><th>Action</th></tr>
+                  </thead>
+                  <tbody>
+                    {partnersList.map((p, idx) => (
+                      <tr key={p.id || idx}>
+                        <td><strong>{p.name}</strong></td>
+                        <td>{p.owner}</td>
+                        <td>{p.contact}</td>
+                        <td>{p.nid}</td>
+                        <td><Badge tone="green">{p.status || "Active"}</Badge></td>
+                        <td>
+                          <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                            Manage Portal
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {currentAdminView === "qr" && (
+            <div className="partner-content page-content" style={{ padding: "20px" }}>
+              <h2>Master QR Standee Hub</h2>
+              <p>Generate and audit print kits for all registered partner institutions.</p>
+              <div style={{ marginTop: "20px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
+                {partnersList.map((p, idx) => (
+                  <div key={idx} style={{ background: "#fff", padding: "20px", borderRadius: "12px", border: "1px solid #eaeaea", textAlign: "center" }}>
+                    <h3>{p.name}</h3>
+                    <p style={{ fontSize: "12px", color: "#666" }}>Owner: {p.owner}</p>
+                    <button className="primary-button" style={{ marginTop: "12px", width: "100%" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
+                      View & Download QR Standee
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Organization</th>
-                    <th>Owner</th>
-                    <th>Students</th>
-                    <th>Total earned</th>
-                    <th>Status</th>
-                    <th>Quick actions & Links</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {partnersList.length === 0 ? (
-                    <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No partners found. Click "Add new partner" above.</td></tr>
-                  ) : (
-                    partnersList.map((p, idx) => {
-                      const rowLink = `${window.location.origin}/?partner=${encodeURIComponent(p.name)}`;
-                      return (
-                        <tr key={p.id || idx}>
-                          <td>
-                            <div className="org-cell">
-                              <span>{p.initials || "BS"}</span>
-                              <strong>{p.name}</strong>
-                            </div>
-                          </td>
-                          <td>{p.owner || "N/A"}</td>
-                          <td>{p.students || 0}</td>
-                          <td className="medium">{p.earned || "৳ 0"}</td>
-                          <td><Badge tone="green">{p.status || "Active"}</Badge></td>
-                          <td>
-                            <div className="row-actions" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                              <button className="primary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => { setActivePartner(p.name); onPortal(p.name); }}>
-                                Open Portal <Icon name="external" size={14} />
-                              </button>
-                              <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
-                                navigator.clipboard?.writeText(rowLink);
-                                alert(`Live Partner Link copied to clipboard:\n${rowLink}`);
-                              }}>
-                                Copy Link
-                              </button>
-                              <button className="secondary-button" style={{ padding: "6px 12px", fontSize: "13px" }} onClick={() => {
-                                setActivePartner(p.name);
-                                onPortal(p.name);
-                              }}>
-                                Get QR Kit
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+          )}
+
+          {currentAdminView === "payouts" && (
+            <div className="partner-content page-content" style={{ padding: "40px" }}>
+              <h2>Global Payouts Center</h2>
+              <p>Review and disburse partner commissions and bonus incentives.</p>
+              <section className="wallet-grid" style={{ marginTop: "20px" }}>
+                <article className="balance-card primary"><span><Icon name="wallet" /></span><p>Total Disbursable</p><h2>৳ 4,82,000</h2><small>Ready for batch transfer</small></article>
+                <article className="balance-card"><span><Icon name="clock" /></span><p>Processing queue</p><h2>৳ 1,24,000</h2><small>Verification in progress</small></article>
+              </section>
             </div>
-          </section>
+          )}
+
+          {currentAdminView === "support" && (
+            <div className="partner-content page-content" style={{ padding: "40px", textAlign: "center" }}>
+              <span><Icon name="headset" size={36} /></span>
+              <h2>Admin Support & Ticketing</h2>
+              <p>Connect with technical operations and partner success leads.</p>
+              <button className="primary-button" style={{ marginTop: "20px" }} onClick={() => alert("Admin dispatch ticket created!")}>Raise Priority Ticket</button>
+            </div>
+          )}
+
+          {currentAdminView === "settings" && (
+            <div className="partner-content page-content" style={{ padding: "40px" }}>
+              <h2>Platform Settings</h2>
+              <p>Configure gateway APIs, automated payout rules, and security controls.</p>
+              <div style={{ marginTop: "20px", background: "#fff", padding: "24px", borderRadius: "12px", border: "1px solid #eaeaea" }}>
+                <h3>Firebase Firestore Connection</h3>
+                <p style={{ color: "green", fontWeight: "600" }}>● Connected securely to active database</p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -300,7 +391,6 @@ function AdminPanel({ onPortal, activePartner, setActivePartner }: { onPortal: (
                 </div>
                 <div className="success-links">
                   <button onClick={() => { setShowForm(false); onPortal(activePartner); }}><Icon name="external" />Open partner portal now</button>
-                  <button onClick={() => window.print()}><Icon name="download" />Download QR Kit (PDF)</button>
                 </div>
                 <button className="primary-button full" onClick={() => setShowForm(false)}>Done</button>
               </div>
@@ -360,8 +450,8 @@ function QrCode({ large = false }: { large?: boolean }) {
   );
 }
 
-function PartnerHeader({ active, onNav, onAdmin, partnerName }: { active: View; onNav: (v: View) => void; onAdmin: () => void; partnerName: string }) {
-  const links: { key: View; label: string }[] = [
+function PartnerHeader({ active, onNav, onAdmin, partnerName }: { active: PartnerView; onNav: (v: PartnerView) => void; onAdmin: () => void; partnerName: string }) {
+  const links: { key: PartnerView; label: string }[] = [
     { key: "dashboard", label: "Dashboard" },
     { key: "students", label: "Students" },
     { key: "payouts", label: "Payouts" },
@@ -467,7 +557,7 @@ function StudentTable({ full = false }: { full?: boolean }) {
   );
 }
 
-function PartnerDashboard({ partnerName, onNav }: { partnerName: string; onNav: (v: View) => void }) {
+function PartnerDashboard({ partnerName, onNav }: { partnerName: string; onNav: (v: PartnerView) => void }) {
   const [tracking, setTracking] = useState("");
   const [tracked, setTracked] = useState(false);
   const dynamicTransactions = [
@@ -629,17 +719,44 @@ function PayoutsPage() {
 }
 
 function QrKitPage({ partnerName }: { partnerName: string }) {
+  const standeeRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
   const shareLink = `${window.location.origin}/?partner=${encodeURIComponent(partnerName)}`;
+
+  const handleDownloadImage = async () => {
+    if (!standeeRef.current) return;
+    try {
+      setDownloading(true);
+      const canvas = await html2canvas(standeeRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `${partnerName.toLowerCase().replace(/\s+/g, '-')}-qr-standee.png`;
+      link.click();
+    } catch (error) {
+      console.error("Failed to generate QR image:", error);
+      alert("Failed to download image. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="partner-content page-content">
       <div className="section-heading page-title">
         <div><p className="eyebrow">Marketing toolkit</p><h1>Your QR Standee Kit</h1><p>Turn walk-in interest into trackable student registrations.</p></div>
-        <button className="primary-button" onClick={() => window.print()}><Icon name="download" />Download A4 PDF</button>
+        <button className="primary-button" onClick={handleDownloadImage} disabled={downloading}>
+          <Icon name="download" />{downloading ? "Generating Image..." : "Download QR Image (PNG)"}
+        </button>
       </div>
       <section className="qr-hub">
         <div className="standee-zone">
-          <p className="zone-label">Live print preview · A4 portrait</p>
-          <div className="standee">
+          <p className="zone-label">Live print preview · Standee design</p>
+          <div className="standee" ref={standeeRef} style={{ background: "#fff", padding: "24px" }}>
             <div className="standee-top">
               <div className="standee-brand"><span>{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span><strong>{partnerName || "British Study Centre"}</strong></div>
               <small>OFFICIAL PARTNER</small>
@@ -657,10 +774,12 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
         <aside className="kit-panel">
           <div><p className="eyebrow">Ready to print</p><h2>Your branded acquisition kit</h2><p>The QR code is unique to your organization. Every scan and registration is automatically attributed to your account.</p></div>
           <ul>
-            <li><span><Icon name="check" /></span><div><strong>High-resolution A4 PDF</strong><small>300 DPI, print-ready with bleed</small></div></li>
+            <li><span><Icon name="check" /></span><div><strong>High-resolution PNG Image</strong><small>Crisp vector-rendered QR standee design</small></div></li>
             <li><span><Icon name="check" /></span><div><strong>Unique tracking enabled</strong><small>All leads flow directly into your live dashboard</small></div></li>
           </ul>
-          <button className="primary-button full" onClick={() => window.print()}><Icon name="download" />Download A4 PDF (Print / PDF) <span>2.4 MB</span></button>
+          <button className="primary-button full" onClick={handleDownloadImage} disabled={downloading}>
+            <Icon name="download" />{downloading ? "Generating Image..." : "Download QR Image (PNG)"} <span>HQ</span>
+          </button>
           <button className="secondary-button full" onClick={() => {
             navigator.clipboard?.writeText(shareLink);
             alert(`Partner portal link copied!\n${shareLink}`);
@@ -672,7 +791,7 @@ function QrKitPage({ partnerName }: { partnerName: string }) {
 }
 
 function PartnerPortal({ onAdmin, partnerName }: { onAdmin: () => void; partnerName: string }) {
-  const [page, setPage] = useState<View>("dashboard");
+  const [page, setPage] = useState<PartnerView>("dashboard");
   return (
     <div className="partner-shell">
       <PartnerHeader active={page} onNav={setPage} onAdmin={onAdmin} partnerName={partnerName} />
