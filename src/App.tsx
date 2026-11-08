@@ -48,7 +48,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     external: <><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" /></>,
     eye: <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
     file: <><path d="M6 2h8l4 4v16H6z" /><path d="M14 2v5h5M9 13h6M9 17h6" /></>,
-    gear: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.56 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3v-4h.09A1.7 1.7 0 0 0 4.6 8.56a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83-2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.15.61.66 1.08 1.29 1.19H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z" /></>,
+    gear: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.56 19.4a1.7 1.7 0 0 0-1.88.34l-.06-.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3v-4h.09A1.7 1.7 0 0 0 4.6 8.56a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V3h4v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83-2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.15.61.66 1.08 1.29 1.19H21v4h-.09A1.7 1.7 0 0 0 19.4 15Z" /></>,
     grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
     headset: <><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><path d="M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1zM17 20c0 1-1 2-3 2" /></>,
     home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v11h14V10M9 21v-7h6v7" /></>,
@@ -58,7 +58,7 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
     send: <><path d="m22 2-7 20-4-9-9-4zM22 2 11 13" /></>,
     shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" /><path d="m9 12 2 2 4-4" /></>,
-    students: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+    students: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 1 0 7.75" /></>,
     upload: <><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></>,
     wallet: <><path d="M4 5h14a2 2 0 0 1 2 2v13H5a2 2 0 0 1-2-2V5.5A2.5 2.5 0 0 1 5.5 3H18" /><path d="M20 11h-5a2 2 0 0 0 0 4h5" /></>,
   };
@@ -242,7 +242,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
                               <td>
                                 <div className="org-cell" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                   {p.logo ? (
-                                    <img src={p.logo} alt={p.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid #ddd" }} />
+                                    <img src={p.logo} alt={p.name} style={{ width: "32px", height: "32px", borderRadius: "6px", objectFit: "cover", border: "1px solid #ddd" }} />
                                   ) : (
                                     <span>{p.initials || "BS"}</span>
                                   )}
@@ -303,7 +303,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
                       <tr key={p.id || idx}>
                         <td>
                           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            {p.logo && <img src={p.logo} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />}
+                            {p.logo && <img src={p.logo} alt="" style={{ width: "28px", height: "28px", borderRadius: "4px", objectFit: "cover" }} />}
                             <strong>{p.name}</strong>
                           </div>
                         </td>
@@ -331,7 +331,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
               <div style={{ marginTop: "20px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
                 {partnersList.map((p, idx) => (
                   <div key={idx} style={{ background: "#fff", padding: "20px", borderRadius: "12px", border: "1px solid #eaeaea", textAlign: "center" }}>
-                    {p.logo && <img src={p.logo} alt="" style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 10px" }} />}
+                    {p.logo && <img src={p.logo} alt="" style={{ width: "48px", height: "48px", borderRadius: "6px", objectFit: "cover", margin: "0 auto 10px" }} />}
                     <h3>{p.name}</h3>
                     <p style={{ fontSize: "12px", color: "#666" }}>Owner: {p.owner}</p>
                     <button className="primary-button" style={{ marginTop: "12px", width: "100%" }} onClick={() => { setActivePartner(p.name); setPartnerLogo(p.logo || null); onPortal(p.name); }}>
@@ -477,9 +477,9 @@ function PartnerHeader({ active, onNav, onAdmin, partnerName, partnerLogo }: { a
   ];
   return (
     <header className="partner-header">
-      <button className="partner-brand" onClick={() => onNav("dashboard")}>
+      <button className="partner-brand" onClick={() => onNav("dashboard")} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {partnerLogo ? (
-          <img src={partnerLogo} alt={partnerName} style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover", border: "1px solid #ddd" }} />
+          <img src={partnerLogo} alt={partnerName} style={{ width: "38px", height: "38px", borderRadius: "6px", objectFit: "cover", border: "1px solid #ddd" }} />
         ) : (
           <span className="partner-logo">{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span>
         )}
@@ -779,11 +779,11 @@ function QrKitPage({ partnerName, partnerLogo }: { partnerName: string; partnerL
           <p className="zone-label">Live print preview · Standee design</p>
           <div className="standee" ref={standeeRef} style={{ background: "#fff", padding: "24px" }}>
             <div className="standee-top">
-              <div className="standee-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div className="standee-brand" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 {partnerLogo ? (
-                  <img src={partnerLogo} alt="" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
+                  <img src={partnerLogo} alt="" style={{ width: "36px", height: "36px", borderRadius: "6px", objectFit: "cover", border: "1px solid #ddd" }} />
                 ) : (
-                  <span>{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span>
+                  <span className="partner-logo">{partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}</span>
                 )}
                 <strong>{partnerName || "British Study Centre"}</strong>
               </div>
@@ -852,6 +852,7 @@ export default function App() {
   const [activePartner, setActivePartner] = useState("British Study Centre");
   const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
 
+  // Sync partner data and logo directly from Firestore
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const partnerParam = params.get("partner");
@@ -859,6 +860,14 @@ export default function App() {
       const decodedName = decodeURIComponent(partnerParam);
       setActivePartner(decodedName);
       setMode("partner");
+
+      const q = query(collection(db, "partners"));
+      onSnapshot(q, (snapshot) => {
+        const found = snapshot.docs.find(doc => doc.data().name.toLowerCase() === decodedName.toLowerCase());
+        if (found && found.data().logo) {
+          setPartnerLogo(found.data().logo);
+        }
+      });
     }
   }, []);
 
