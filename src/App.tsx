@@ -458,18 +458,19 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
                             <td><Badge tone={s.studentChoice === "Yes" ? "green" : s.studentChoice === "No" ? "red" : "amber"}>{s.studentChoice || "Pending"}</Badge></td>
                             <td>
                               <button
-                                className="primary-button"
-                                style={{ padding: "6px 12px", fontSize: "12px" }}
-                                onClick={() => {
-                                  setSelectedStudentForAction(s);
-                                  setAssessmentResultText(s.assessmentResult || "Eligible for UK universities with your current GPA & IELTS.");
-                                  setAppointmentDetails(s.appointmentDetails || "Eduaimers Office, Shyamoli, Dhaka. Date: Tomorrow, 3:00 PM.");
-                                  setFileOpeningFee(s.fileOpeningFee || currentP?.fileOpeningFee || "2000");
-                                  setAfterVisaFee(s.afterVisaFee || currentP?.afterVisaFee || "5000");
-                                }}
-                              >
-                                View Profile & Stages
-                              </button>
+  className="primary-button"
+  style={{ padding: "6px 12px" }}
+  onClick={() => {
+    setSelectedStudentForAction(s);
+    setAssessmentResultText(s.assessmentResultText || "");
+    setAppointmentDetails(s.appointmentDetails || "");
+    setFileOpeningFee(s.fileOpeningFee || "");
+    setAfterVisaFee(s.afterVisaFee || "");
+    setIsProfileModalOpen(true); // <--- এই লাইনটি যুক্ত করে দিন (আপনার প্রফাইল ওপেন করার স্টেট অনুযায়ী নাম হতে পারে)
+  }}
+>
+  View Profile & Stages
+</button>
                             </td>
                           </tr>
                         );
