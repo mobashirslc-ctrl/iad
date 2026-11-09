@@ -85,31 +85,11 @@ function Badge({ children, tone = "green" }: { children: ReactNode; tone?: "gree
 }
 
 function QrCode({ value }: { value: string }) {
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(value)}`;
   return (
-    <div style={{ background: "#fff", padding: "8px", borderRadius: "4px" }}>
-      <QRCodeSVG
-        value={value}
-        size={160}
-        bgColor={"#FFFFFF"}
-        fgColor={"#000000"}
-        level={"H"}
-        includeMargin={false}
-      />
+    <div style={{ background: "#fff", padding: "10px", borderRadius: "8px", display: "inline-block", border: "1px solid #ddd" }}>
+      <img src={qrImageUrl} alt="Dynamic QR Standee" style={{ width: "160px", height: "160px", display: "block" }} />
     </div>
-  );
-}
-  return (
-    <svg viewBox="0 0 25 25" shapeRendering="crispEdges" aria-label="Dynamic QR code" style={{ width: "160px", height: "160px", display: "block", margin: "0 auto" }}>
-      <rect width="25" height="25" fill="white" />
-      {[[0, 0], [18, 0], [0, 18]].map(([x, y]) => (
-        <g key={`${x}-${y}`}>
-          <rect x={x} y={y} width="7" height="7" fill="#111" />
-          <rect x={x + 1} y={y + 1} width="5" height="5" fill="#fff" />
-          <rect x={x + 2} y={y + 2} width="3" height="3" fill="#111" />
-        </g>
-      ))}
-      {encoded.map(([x, y]) => (<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#111" />))}
-    </svg>
   );
 }
 
