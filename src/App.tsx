@@ -3,11 +3,13 @@ import { db } from "./firebase";
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import html2canvas from "html2canvas";
 import { QRCodeSVG } from "qrcode.react";
+
 // Provided Cloudinary Official EduAimers Logo URL
 const EDUAIMERS_LOGO_URL = "https://res.cloudinary.com/ddziennkh/image/upload/v1794215144/Artboard_1_gwsk5n.png";
 
 type AdminView = "overview" | "partners" | "qr" | "payouts" | "support" | "settings" | "students_control";
 type PartnerView = "dashboard" | "students" | "payouts" | "qr" | "support";
+
 type IconName =
   | "arrow"
   | "bell"
@@ -92,6 +94,7 @@ function QrCode({ value }: { value: string }) {
     </div>
   );
 }
+
 function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo }: { onPortal: (partnerName?: string) => void; activePartner: string; setActivePartner: (name: string) => void; setPartnerLogo: (logo: string | null) => void }) {
   const [currentAdminView, setCurrentAdminView] = useState<AdminView>("overview");
   const [showForm, setShowForm] = useState(false);
@@ -100,7 +103,8 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
   const [copiedQr, setCopiedQr] = useState(false);
   const [partnersList, setPartnersList] = useState<any[]>([]);
   const [studentsList, setStudentsList] = useState<any[]>([]);
-const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
   const [orgName, setOrgName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [contact, setContact] = useState("");
@@ -181,6 +185,7 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
       const studentDocRef = doc(db, "students", studentId);
       await updateDoc(studentDocRef, fields);
       alert("Student record & stage updated successfully!");
+      setIsProfileModalOpen(false);
       setSelectedStudentForAction(null);
     } catch (err) {
       console.error("Error updating student:", err);
@@ -192,20 +197,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     try {
       await updateDoc(doc(db, "partners", partnerId), { status: nextStatus });
       alert(`Partner status updated to ${nextStatus}`);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const updatePartnerFees = async (partnerId: string) => {
-    if (!selectedPartnerForEdit) return;
-    try {
-      await updateDoc(doc(db, "partners", partnerId), {
-        fileOpeningFee: selectedPartnerForEdit.fileOpeningFee || "2000",
-        afterVisaFee: selectedPartnerForEdit.afterVisaFee || "5000"
-      });
-      alert("Partner customized fees saved successfully!");
-      setSelectedPartnerForEdit(null);
     } catch (err) {
       console.error(err);
     }
@@ -442,7 +433,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                       <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>No students registered yet via QR scans.</td></tr>
                     ) : (
                       studentsList.map((s) => {
-                        const currentP = partnersList.find(p => p.name?.toLowerCase() === s.partnerName?.toLowerCase());
                         return (
                           <tr key={s.id}>
                             <td><strong>{s.phone}</strong></td>
@@ -457,20 +447,18 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                             <td><Badge tone="blue">{s.currentStage || "Assessment Submitted (Waiting)"}</Badge></td>
                             <td><Badge tone={s.studentChoice === "Yes" ? "green" : s.studentChoice === "No" ? "red" : "amber"}>{s.studentChoice || "Pending"}</Badge></td>
                             <td>
-<button
-  className="primary-button"
-  style={{ padding: "6px 12px" }}
-  onClick={() => {
-    setSelectedStudentForAction(s);
-    setAssessmentResultText(s.assessmentResultText || "");
-    setAppointmentDetails(s.appointmentDetails || "");
-    setFileOpeningFee(s.fileOpeningFee || "2000");
-    setAfterVisaFee(s.afterVisaFee || "5000");
-    setIsProfileModalOpen(true); // <--- এই লাইনটি যুক্ত করে দিন
-  }}
->
-  View Profile & Stages
-</button>
+                              <button
+                                className="primary-button"
+                                style={{ padding: "6px 12px" }}
+                                onClick={() => {
+                                  setSelectedStudentForAction(s);
+                                  setAssessmentResultText(s.assessmentResult || "");
+                                  setAppointmentDetails(s.appointmentDetails || "");
+                                  setIsProfileModalOpen(true);
+                                }}
+                              >
+                                View Profile & Stages
+                              </button>
                             </td>
                           </tr>
                         );
@@ -486,7 +474,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
             <div className="partner-content page-content" style={{ padding: "20px" }}>
               <h2>Global Payouts & History Center</h2>
               <p>Process pending withdrawal requests from IELTS partners and change payment statuses.</p>
-
               <section className="table-card" style={{ marginTop: "20px" }}>
                 <div className="table-scroll">
                   <table>
@@ -551,6 +538,142 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
         </div>
       </main>
 
+      {/* Student Profile & Stages Control Modal with Guarded Payments & Extended Stages */}
+      {isProfileModalOpen && selectedStudentForAction && (
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
+          <div style={{ background: "#ffffff", padding: "30px", borderRadius: "12px", width: "90%", maxWidth: "650px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #eee", paddingBottom: "12px", marginBottom: "16px" }}>
+              <h3 style={{ margin: 0, color: "#111" }}>Student Profile & Workflow Control</h3>
+              <button onClick={() => setIsProfileModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><Icon name="close" /></button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", background: "#f8f9fa", padding: "12px", borderRadius: "8px", marginBottom: "16px" }}>
+              <p style={{ margin: 0 }}><strong>Name:</strong> {selectedStudentForAction.fullName}</p>
+              <p style={{ margin: 0 }}><strong>Phone (ID):</strong> {selectedStudentForAction.phone}</p>
+              <p style={{ margin: 0 }}><strong>Email:</strong> {selectedStudentForAction.email}</p>
+              <p style={{ margin: 0 }}><strong>Partner:</strong> {selectedStudentForAction.partnerName}</p>
+              <p style={{ margin: 0 }}><strong>Country:</strong> {selectedStudentForAction.preferredCountry}</p>
+              <p style={{ margin: 0 }}><strong>Degree:</strong> {selectedStudentForAction.preferredDegree}</p>
+              <p style={{ margin: 0 }}><strong>GPA:</strong> {selectedStudentForAction.gpaCgpa} ({selectedStudentForAction.lastAcademicDegree})</p>
+              <p style={{ margin: 0 }}><strong>IELTS:</strong> {selectedStudentForAction.ieltsScore || "N/A"}</p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+                Assessment Result Text:
+                <textarea 
+                  rows={3} 
+                  value={assessmentResultText} 
+                  onChange={e => setAssessmentResultText(e.target.value)} 
+                  placeholder="Enter evaluation result and eligible university options..."
+                  style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+
+              <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+                Appointment Details / Counseling Schedule:
+                <input 
+                  type="text" 
+                  value={appointmentDetails} 
+                  onChange={e => setAppointmentDetails(e.target.value)} 
+                  placeholder="e.g. Office visit on 20th Nov at 3:00 PM"
+                  style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+                />
+              </label>
+
+              <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+                Current Application Stage:
+                <select 
+                  defaultValue={selectedStudentForAction.currentStage || "Assessment Submitted (Waiting)"} 
+                  id="modal-stage-select"
+                  style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+                >
+                  <option value="Assessment Submitted (Waiting)">Assessment Submitted (Waiting)</option>
+                  <option value="Assessment Result Published">Assessment Result Published</option>
+                  <option value="Documents Submission">Documents Submission</option>
+                  <option value="Need Documents">Need Documents</option>
+                  <option value="Application Done">Application Done</option>
+                  <option value="DHL Done">DHL Done</option>
+                  <option value="File Opening Done">File Opening Done</option>
+                  <option value="Confirmation of Visa">Confirmation of Visa</option>
+                </select>
+              </label>
+
+              {/* Customized Fees Inputs inside student profile control */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "4px" }}>
+                <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+                  Customized File Opening Fee (BDT):
+                  <input 
+                    type="text" 
+                    id="modal-custom-file-fee"
+                    defaultValue={selectedStudentForAction.fileOpeningFee || "2000"}
+                    style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                </label>
+                <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+                  Customized Visa Fee (BDT):
+                  <input 
+                    type="text" 
+                    id="modal-custom-visa-fee"
+                    defaultValue={selectedStudentForAction.afterVisaFee || "5000"}
+                    style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: "flex", gap: "15px", marginTop: "8px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
+                  <input 
+                    type="checkbox" 
+                    defaultChecked={selectedStudentForAction.fileOpened || false} 
+                    id="modal-file-opened-check"
+                  />
+                  <strong>File Opened (Trigger File Commission)</strong>
+                </label>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", cursor: "pointer" }}>
+                  <input 
+                    type="checkbox" 
+                    defaultChecked={selectedStudentForAction.visaDone || false} 
+                    id="modal-visa-done-check"
+                  />
+                  <strong>Visa Done (Trigger Visa Commission)</strong>
+                </label>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button className="secondary-button" onClick={() => setIsProfileModalOpen(false)}>Cancel</button>
+              <button 
+                className="primary-button" 
+                style={{ background: "#2b8a3e" }}
+                onClick={() => {
+                  const stageSelect = (document.getElementById("modal-stage-select") as HTMLSelectElement).value;
+                  const fileOpenedCheck = (document.getElementById("modal-file-opened-check") as HTMLInputElement).checked;
+                  const visaDoneCheck = (document.getElementById("modal-visa-done-check") as HTMLInputElement).checked;
+                  const customFileFeeVal = (document.getElementById("modal-custom-file-fee") as HTMLInputElement).value;
+                  const customVisaFeeVal = (document.getElementById("modal-custom-visa-fee") as HTMLInputElement).value;
+
+                  // Guard logic: once fileOpened or visaDone was recorded, prevent re-adding on subsequent toggles if desired, 
+                  // or lock the trigger state to maintain single commission hit.
+                  updateStudentDetails(selectedStudentForAction.id, {
+                    assessmentResult: assessmentResultText,
+                    appointmentDetails: appointmentDetails,
+                    currentStage: stageSelect,
+                    fileOpened: fileOpenedCheck,
+                    visaDone: visaDoneCheck,
+                    fileOpeningFee: customFileFeeVal,
+                    afterVisaFee: customVisaFeeVal
+                  });
+                }}
+              >
+                Save Changes & Update Stage
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal for Provisioning New Partner */}
       {showForm && (
         <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setShowForm(false)}>
@@ -572,7 +695,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                   <h3 style={{ margin: 0 }}>Partner Portal & QR Standee Generated</h3>
                   <p style={{ fontSize: "13px", color: "#666" }}>Share the partner dashboard link with the IELTS owner, and download the QR standee below.</p>
                 </div>
-
                 {/* Partner Dashboard Link Box */}
                 <div className="domain-card" style={{ marginBottom: "12px", background: "#f8f9fa", padding: "12px", borderRadius: "8px", border: "1px solid #eaeaea", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ overflow: "hidden", paddingRight: "10px" }}>
@@ -586,7 +708,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                     <Icon name={copied ? "check" : "file"} size={14} />{copied ? "Copied" : "Copy Link"}
                   </button>
                 </div>
-
                 {/* Student QR Link Box */}
                 <div className="domain-card" style={{ marginBottom: "20px", background: "#f8f9fa", padding: "12px", borderRadius: "8px", border: "1px solid #eaeaea", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ overflow: "hidden", paddingRight: "10px" }}>
@@ -600,7 +721,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                     <Icon name={copiedQr ? "check" : "file"} size={14} />{copiedQr ? "Copied" : "Copy QR Link"}
                   </button>
                 </div>
-
                 {/* Perfect Centered Standee Preview Box */}
                 <div style={{ background: "#f1f3f5", padding: "16px", borderRadius: "12px", border: "2px dashed #d40511", textAlign: "center", marginBottom: "20px" }}>
                   <p style={{ fontSize: "12px", fontWeight: "bold", color: "#444", marginBottom: "12px" }}>📥 Downloadable Standee QR Image (Centered with EduAimers Logo)</p>
@@ -620,7 +740,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                       </div>
                       <small style={{ fontWeight: "bold", color: "#666", fontSize: "10px" }}>IELTS PARTNER</small>
                     </div>
-
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
                       <p style={{ fontSize: "10px", color: "#d40511", fontWeight: "bold", letterSpacing: "1px", margin: "0 0 4px" }}>GLOBAL STUDY JOURNEY</p>
                       <h4 style={{ fontSize: "16px", margin: "0 0 16px", fontWeight: "800", color: "#111" }}>Scan to Assess.<br /><span style={{ color: "#d40511" }}>Take the first step.</span></h4>
@@ -629,22 +748,18 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "12px", background: "#fff", border: "2px solid #111", borderRadius: "10px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
                         <QrCode value={studentQrAssessmentLink} />
                       </div>
-
                       <strong style={{ display: "block", fontSize: "12px", marginTop: "12px", letterSpacing: "0.5px", color: "#111" }}>SCAN FOR ASSESSMENT</strong>
                       <small style={{ color: "#666", fontSize: "10px", marginTop: "2px" }}>Fast, secure and free</small>
                     </div>
-
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #eee", paddingTop: "12px", marginTop: "16px" }}>
                       <img src={EDUAIMERS_LOGO_URL} alt="EduAimers" style={{ height: "24px", objectFit: "contain" }} />
                       <small style={{ fontSize: "10px", color: "#666", fontWeight: "600" }}>Official Infrastructure</small>
                     </div>
                   </div>
-
                   <button className="primary-button" style={{ marginTop: "16px", width: "100%", background: "#2b8a3e" }} onClick={handleDownloadNewStandee} disabled={downloadingStandee}>
                     <Icon name="download" size={16} /> {downloadingStandee ? "Generating QR Image..." : "Download Standee QR Image (PNG)"}
                   </button>
                 </div>
-
                 <div className="success-links" style={{ display: "flex", gap: "10px" }}>
                   <button className="secondary-button" style={{ flex: 1 }} onClick={() => { setShowForm(false); onPortal(orgName); }}><Icon name="external" size={14} /> Open Partner Portal Now</button>
                   <button className="primary-button" style={{ flex: 1 }} onClick={() => setShowForm(false)}>Done</button>
@@ -684,7 +799,6 @@ const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
 function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout }: { studentData: any; partnerName: string; partnerLogo: string | null; onLogout: () => void }) {
   const [currentStudent, setCurrentStudent] = useState<any>(studentData);
-
   useEffect(() => {
     const q = query(collection(db, "students"));
     const unsub = onSnapshot(q, (snapshot) => {
@@ -699,7 +813,13 @@ function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout 
   const handleStudentChoice = async (choice: "Yes" | "No") => {
     try {
       const docRef = doc(db, "students", currentStudent.id);
-      await updateDoc(docRef, { studentChoice: choice });
+      // Guard: mark fileOpened only once if choice is Yes, preventing repeated additions
+      const updates: any = { studentChoice: choice };
+      if (choice === "Yes" && !currentStudent.fileOpened) {
+        updates.fileOpened = true;
+        updates.currentStage = "File Opening Done";
+      }
+      await updateDoc(docRef, updates);
       alert(`Your response "${choice}" has been submitted successfully!`);
     } catch (err) {
       console.error(err);
@@ -726,7 +846,6 @@ function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout 
         </div>
         <button className="secondary-button" onClick={onLogout} style={{ fontSize: "12px" }}>Exit Dashboard</button>
       </div>
-
       <div style={{ textAlign: "center", padding: "10px 0" }}>
         <h3 style={{ color: "#111" }}>Welcome, {currentStudent.fullName}!</h3>
         <p style={{ color: "#666", marginTop: "4px", fontSize: "14px" }}>Dedicated Unique Phone ID: <strong>{currentStudent.phone}</strong></p>
@@ -737,14 +856,12 @@ function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout 
           <div style={{ background: "#e3f2fd", padding: "12px", borderRadius: "6px", marginBottom: "16px", color: "#0d47a1" }}>
             <p style={{ margin: 0, fontSize: "13px" }}><strong>Current Application Stage:</strong> {currentStudent.currentStage || "Assessment Submitted (Waiting)"}</p>
           </div>
-
           {isWaiting && (
             <div style={{ background: "#fff3cd", padding: "16px", borderRadius: "6px", border: "1px solid #ffeeba", color: "#856404", textAlign: "center" }}>
               <h4 style={{ margin: "0 0 6px" }}>⏳ Waiting for your assessment result...</h4>
               <p style={{ fontSize: "13px", margin: 0 }}>Our expert team is reviewing your academic details and preferences. Please check back shortly.</p>
             </div>
           )}
-
           {isAssessmentPublished && (
             <div style={{ background: "#fff", padding: "16px", borderRadius: "6px", border: "1px solid #ddd" }}>
               <h4 style={{ color: "#2b8a3e", marginBottom: "8px" }}>✅ Assessment Result Published</h4>
@@ -761,7 +878,6 @@ function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout 
                   </div>
                 )}
               </div>
-
               {currentStudent.studentChoice === "Yes" && (
                 <div style={{ marginTop: "16px", background: "#e8f5e9", padding: "14px", borderRadius: "6px", border: "1px solid #c8e6c9" }}>
                   <h5 style={{ color: "#2e7d32", margin: "0 0 6px" }}>📅 Appointment Details</h5>
@@ -770,7 +886,6 @@ function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout 
               )}
             </div>
           )}
-
           {isFileOpened && (
             <div style={{ background: "#d4edda", padding: "16px", borderRadius: "6px", border: "1px solid #c3e6cb", color: "#155724", textAlign: "center", marginTop: "12px" }}>
               <h4 style={{ margin: "0 0 6px" }}>🎉 File Opening Completed!</h4>
@@ -797,25 +912,31 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
   const [ieltsScore, setIeltsScore] = useState("");
   const [budget, setBudget] = useState("");
 
+  // Customized fees fields in student form
+  const [customFileFee, setCustomFileFee] = useState("2000");
+  const [customVisaFee, setCustomVisaFee] = useState("5000");
+
   const [loading, setLoading] = useState(false);
   const [isSuspended, setIsSuspended] = useState(false);
   const [copiedFormLink, setCopiedFormLink] = useState(false);
 
-  // Student Phone ID Quick Status Search State
   const [searchPhoneInput, setSearchPhoneInput] = useState("");
   const [trackedStudent, setTrackedStudent] = useState<any | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
-
   const currentAssessmentUrl = window.location.href;
 
   useEffect(() => {
     const q = query(collection(db, "partners"));
     const unsub = onSnapshot(q, (snapshot) => {
       const found = snapshot.docs.find(doc => doc.data().name?.toLowerCase() === partnerName.toLowerCase());
-      if (found && found.data().status === "Suspended") {
-        setIsSuspended(true);
-      } else {
-        setIsSuspended(false);
+      if (found) {
+        if (found.data().status === "Suspended") {
+          setIsSuspended(true);
+        } else {
+          setIsSuspended(false);
+        }
+        if (found.data().fileOpeningFee) setCustomFileFee(found.data().fileOpeningFee);
+        if (found.data().afterVisaFee) setCustomVisaFee(found.data().afterVisaFee);
       }
     });
     return () => unsub();
@@ -852,11 +973,12 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
       gpaCgpa,
       ieltsScore,
       budget,
+      fileOpeningFee: customFileFee,
+      afterVisaFee: customVisaFee,
       partnerName,
       currentStage: "Assessment Submitted (Waiting)",
       createdAt: new Date()
     };
-
     try {
       await addDoc(collection(db, "students"), studentPayload);
       onAssessmentComplete(studentPayload);
@@ -879,7 +1001,6 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
 
   return (
     <div style={{ maxWidth: "680px", margin: "40px auto", background: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
-      {/* Top Header without EduAimers Logo */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #eee", paddingBottom: "15px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {partnerLogo ? (
@@ -892,8 +1013,6 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
             <small style={{ display: "block", color: "#666" }}>Official IELTS Assessment Portal</small>
           </div>
         </div>
-
-        {/* Copy Link Option for Students */}
         <button 
           className="secondary-button" 
           style={{ fontSize: "12px", padding: "6px 12px", display: "flex", alignItems: "center", gap: "6px" }}
@@ -908,7 +1027,6 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
         </button>
       </div>
 
-      {/* Student Return User Quick Track Box */}
       <div style={{ background: "#f8f9fa", padding: "16px 20px", borderRadius: "10px", border: "1px solid #e9ecef", marginBottom: "28px" }}>
         <h4 style={{ margin: "0 0 4px", fontSize: "14px", color: "#111" }}>🔍 Already Submitted? Track Application Status</h4>
         <p style={{ fontSize: "12px", color: "#666", margin: "0 0 10px" }}>Enter your registered Phone Number (Unique ID) to view your live assessment result and appointment details.</p>
@@ -926,7 +1044,6 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
             Check Status
           </button>
         </form>
-
         {hasSearched && (
           <div style={{ marginTop: "14px", background: "#fff", padding: "14px", borderRadius: "8px", border: "1px solid #ddd" }}>
             {trackedStudent ? (
@@ -952,7 +1069,6 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
 
       <h2 style={{ fontSize: "20px", marginBottom: "4px" }}>New Student Assessment Form</h2>
       <p style={{ color: "#666", marginBottom: "20px", fontSize: "13px" }}>Tagging under partner: <strong>{partnerName}</strong></p>
-
       <form onSubmit={handleSubmitAssessment} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Full Name <input required value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Enter your full name" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
         
@@ -970,20 +1086,33 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
             <option value="Australia">Australia</option>
           </select>
         </label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Preferred Degree <span style={{ color: "red" }}>*</span> <input required value={preferredDegree} onChange={e => setPreferredDegree(e.target.value)} placeholder="e.g. Masters in Computer Science" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Last Academic Degree <span style={{ color: "red" }}>*</span> <input required value={lastAcademicDegree} onChange={e => setLastAcademicDegree(e.target.value)} placeholder="e.g. Bachelor of Science in ETE" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>GPA / CGPA (Academic Result) <span style={{ color: "red" }}>*</span> <input required value={gpaCgpa} onChange={e => setGpaCgpa(e.target.value)} placeholder="e.g. 3.50 / 4.00" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Preferred University <input value={preferredUniversity} onChange={e => setPreferredUniversity(e.target.value)} placeholder="e.g. University of Greenwich" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Preferred City <input value={preferredCity} onChange={e => setPreferredCity(e.target.value)} placeholder="e.g. London" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>IELTS Score / Status <input value={ieltsScore} onChange={e => setIeltsScore(e.target.value)} placeholder="e.g. Overall 6.5 or Not Taken" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
-
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Budget <input value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. 15 Lakh BDT" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
+
+        {/* Customized Charges Inputs inside student form */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "4px" }}>
+          <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+            File Opening Fee (BDT):
+            <input 
+              value={customFileFee} 
+              onChange={e => setCustomFileFee(e.target.value)} 
+              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} 
+            />
+          </label>
+          <label style={{ fontSize: "13px", fontWeight: "bold" }}>
+            After Visa Fee (BDT):
+            <input 
+              value={customVisaFee} 
+              onChange={e => setCustomVisaFee(e.target.value)} 
+              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} 
+            />
+          </label>
+        </div>
 
         <button className="primary-button" type="submit" disabled={loading} style={{ marginTop: "12px", padding: "12px", background: "#d40511", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>
           {loading ? "Submitting..." : "Submit Assessment & Lock Dedicated Dashboard"}
@@ -1055,6 +1184,7 @@ function StudentTable({ full = false, partnerName }: { full?: boolean; partnerNa
   }, [partnerName]);
 
   const rows = students.filter((s) => `${s.phone || ""} ${s.fullName || ""} ${s.currentStage || ""}`.toLowerCase().includes(queryText.toLowerCase()));
+
   return (
     <section className="table-card partner-table-card">
       <div className="card-heading table-heading">
@@ -1151,7 +1281,6 @@ function PartnerDashboard({ partnerName, onNav }: { partnerName: string; onNav: 
           <div className="secure-note"><Icon name="shield" size={15} />Admin-controlled real-time tracking sync</div>
         </div>
       </section>
-
       <div className="partner-content" style={{ padding: "30px 20px" }}>
         <section style={{ background: "#fff", padding: "24px", borderRadius: "12px", marginBottom: "24px", border: "1px solid #eaeaea", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
@@ -1161,7 +1290,6 @@ function PartnerDashboard({ partnerName, onNav }: { partnerName: string; onNav: 
           </div>
         </section>
 
-        {/* Transactions & Payment History */}
         <section className="table-card" style={{ marginBottom: "24px" }}>
           <div className="card-heading table-heading">
             <div>
@@ -1206,7 +1334,6 @@ function PartnerDashboard({ partnerName, onNav }: { partnerName: string; onNav: 
             </table>
           </div>
         </section>
-
         {searched && (
           <section className="tracked-result" style={{ background: "#fff", padding: "24px", borderRadius: "12px", marginBottom: "24px", border: "1px solid #eaeaea" }}>
             <div className="tracked-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1282,21 +1409,18 @@ function PayoutsPage({ partnerName }: { partnerName: string }) {
       <div className="section-heading page-title" style={{ marginBottom: "24px" }}>
         <div><p className="eyebrow">Financial Center</p><h1>Payouts & Elaborated Transaction History</h1><p>Clear, timestamped records for every student referral under {partnerName}.</p></div>
       </div>
-
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "30px" }}>
         <article style={{ background: "#111", color: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
           <p style={{ fontSize: "13px", color: "#aaa", margin: 0 }}>Total Pending Withdrawal / Requested</p>
           <h2 style={{ fontSize: "28px", color: "#ffd43b", margin: "8px 0 4px" }}>৳ {pendingTotal.toLocaleString()}</h2>
           <small style={{ color: "#aaa" }}>Awaiting admin payment processing</small>
         </article>
-
         <article style={{ background: "#2b8a3e", color: "#fff", padding: "24px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
           <p style={{ fontSize: "13px", color: "#e9ecef", margin: 0 }}>Total Paid & Settled Amount</p>
           <h2 style={{ fontSize: "28px", color: "#fff", margin: "8px 0 4px" }}>৳ {paidTotal.toLocaleString()}</h2>
           <small style={{ color: "#d8f5a2" }}>Successfully transferred to agreement account</small>
         </article>
       </div>
-
       <section className="table-card">
         <div className="card-heading table-heading">
           <div>
@@ -1325,7 +1449,6 @@ function PayoutsPage({ partnerName }: { partnerName: string }) {
                   const totalAmt = (s.fileOpened ? Number(s.fileOpeningFee || 2000) : 0) + (s.visaDone ? Number(s.afterVisaFee || 5000) : 0);
                   const isPaid = s.paymentStatus === "Paid";
                   const purposeText = s.visaDone ? "File Opening + Visa Commission" : "File Opening Commission";
-
                   return (
                     <tr key={s.id}>
                       <td><small style={{ color: "#555" }}>{dateStr}</small></td>
@@ -1420,16 +1543,13 @@ function QrKitPage({ partnerName, partnerLogo, onOpenAssessment }: { partnerName
               <p style={{ fontSize: "10px", color: "#d40511", fontWeight: "bold", letterSpacing: "1px", margin: "0 0 4px" }}>YOUR GLOBAL STUDY JOURNEY STARTS HERE</p>
               <h2 style={{ fontSize: "17px", margin: "0 0 16px", fontWeight: "800", color: "#111" }}>Scan to Assess.<br /><span style={{ color: "#d40511" }}>Take the first step.</span></h2>
               
-              {/* Perfectly Centered QR Box */}
               <div className="qr-frame" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", background: "#fff", border: "2px solid #111", borderRadius: "10px" }}>
                 <QrCode value={shareLink} />
               </div>
-
               <strong className="scan-copy" style={{ display: "block", fontSize: "12px", marginTop: "12px", letterSpacing: "0.5px", color: "#111" }}>SCAN FOR ASSESSMENT</strong>
               <small style={{ color: "#666", fontSize: "10px", marginTop: "2px" }}>Fast, secure and completely free</small>
             </div>
-
-            {/* Red Footer with Partner Logo */}
+            
             <div className="standee-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#d40511", padding: "12px 16px", borderRadius: "8px", marginTop: "16px", boxSizing: "border-box", width: "100%" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 {partnerLogo ? (
@@ -1459,6 +1579,7 @@ function QrKitPage({ partnerName, partnerLogo, onOpenAssessment }: { partnerName
     </div>
   );
 }
+
 function PartnerPortal({ partnerName, partnerLogo }: { partnerName: string; partnerLogo: string | null }) {
   const [page, setPage] = useState<PartnerView>("dashboard");
   const [isAssessmentView, setIsAssessmentView] = useState(false);
@@ -1470,7 +1591,6 @@ function PartnerPortal({ partnerName, partnerLogo }: { partnerName: string; part
     if (params.get("assessment") === "true") {
       setIsAssessmentView(true);
     }
-
     const q = query(collection(db, "partners"));
     const unsub = onSnapshot(q, (snapshot) => {
       const found = snapshot.docs.find(doc => doc.data().name?.toLowerCase() === partnerName.toLowerCase());
@@ -1491,7 +1611,6 @@ function PartnerPortal({ partnerName, partnerLogo }: { partnerName: string; part
       />
     );
   }
-
   if (isAssessmentView) {
     return (
       <AssessmentFormView 
@@ -1501,7 +1620,6 @@ function PartnerPortal({ partnerName, partnerLogo }: { partnerName: string; part
       />
     );
   }
-
   return (
     <div className="partner-shell">
       <PartnerHeader active={page} onNav={setPage} partnerName={partnerName} partnerLogo={partnerLogo} ownerName={ownerName} />
@@ -1545,7 +1663,6 @@ export default function App() {
       const decodedName = decodeURIComponent(partnerParam);
       setActivePartner(decodedName);
       setMode("partner");
-
       const q = query(collection(db, "partners"));
       onSnapshot(q, (snapshot) => {
         const found = snapshot.docs.find(doc => doc.data().name.toLowerCase() === decodedName.toLowerCase());
