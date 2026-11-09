@@ -87,8 +87,8 @@ function Badge({ children, tone = "green" }: { children: ReactNode; tone?: "gree
 function QrCode({ value }: { value: string }) {
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(value)}`;
   return (
-    <div style={{ background: "#fff", padding: "10px", borderRadius: "8px", display: "inline-block", border: "1px solid #ddd" }}>
-      <img src={qrImageUrl} alt="Dynamic QR Standee" style={{ width: "160px", height: "160px", display: "block" }} />
+    <div style={{ background: "#fff", padding: "10px", borderRadius: "10px", display: "inline-flex", alignItems: "center", justifyContent: "center", border: "1px solid #ddd", maxWidth: "100%", boxSizing: "border-box" }}>
+      <img src={qrImageUrl} alt="Dynamic QR Standee" style={{ width: "135px", height: "135px", display: "block", objectFit: "contain" }} />
     </div>
   );
 }
@@ -1429,18 +1429,18 @@ function QrKitPage({ partnerName, partnerLogo, onOpenAssessment }: { partnerName
             </div>
 
             {/* Red Footer with Partner Logo */}
-            <div className="standee-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#d40511", padding: "10px 12px", borderRadius: "6px", marginTop: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div className="standee-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#d40511", padding: "12px 16px", borderRadius: "8px", marginTop: "16px", boxSizing: "border-box", width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 {partnerLogo ? (
-                  <img src={partnerLogo} alt="" style={{ width: "22px", height: "22px", borderRadius: "4px", objectFit: "cover", background: "#fff" }} />
+                  <img src={partnerLogo} alt="" style={{ width: "28px", height: "28px", borderRadius: "6px", objectFit: "contain", background: "#fff", padding: "2px" }} />
                 ) : (
-                  <span style={{ background: "#fff", color: "#d40511", width: "22px", height: "22px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "4px", fontWeight: "bold", fontSize: "10px" }}>
+                  <span style={{ background: "#fff", color: "#d40511", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px", fontWeight: "bold", fontSize: "11px" }}>
                     {partnerName ? partnerName.slice(0, 2).toUpperCase() : "BS"}
                   </span>
                 )}
-                <strong style={{ fontSize: "11px", color: "#fff" }}>{partnerName || "Partner"}</strong>
+                <span style={{ fontSize: "14px", fontWeight: "600", color: "#fff", lineHeight: "1.2" }}>{partnerName || "Study lelts"}</span>
               </div>
-              <small style={{ fontSize: "10px", color: "#fff", fontWeight: "600" }}>Official Partner</small>
+              <span style={{ fontSize: "13px", color: "#fff", fontWeight: "500", opacity: 0.95 }}>Official Partner</span>
             </div>
           </div>
         </div>
