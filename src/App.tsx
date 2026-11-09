@@ -119,8 +119,6 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
   
   const [assessmentResultText, setAssessmentResultText] = useState("");
   const [appointmentDetails, setAppointmentDetails] = useState("");
-  const [fileOpeningFee, setFileOpeningFee] = useState("2000");
-  const [afterVisaFee, setAfterVisaFee] = useState("5000");
   const [downloadingStandee, setDownloadingStandee] = useState(false);
   const newStandeeRef = useRef<HTMLDivElement>(null);
 
@@ -654,14 +652,16 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
                   const customFileFeeVal = (document.getElementById("modal-custom-file-fee") as HTMLInputElement).value;
                   const customVisaFeeVal = (document.getElementById("modal-custom-visa-fee") as HTMLInputElement).value;
 
-                  // Guard logic: once fileOpened or visaDone was recorded, prevent re-adding on subsequent toggles if desired, 
-                  // or lock the trigger state to maintain single commission hit.
+                  // Guard logic: once fileOpened or visaDone was already true, keep it locked or prevent duplicate trigger increment
+                  const wasFileOpened = selectedStudentForAction.fileOpened || false;
+                  const wasVisaDone = selectedStudentForAction.visaDone || false;
+
                   updateStudentDetails(selectedStudentForAction.id, {
                     assessmentResult: assessmentResultText,
                     appointmentDetails: appointmentDetails,
                     currentStage: stageSelect,
-                    fileOpened: fileOpenedCheck,
-                    visaDone: visaDoneCheck,
+                    fileOpened: wasFileOpened ? true : fileOpenedCheck,
+                    visaDone: wasVisaDone ? true : visaDoneCheck,
                     fileOpeningFee: customFileFeeVal,
                     afterVisaFee: customVisaFeeVal
                   });
@@ -813,8 +813,8 @@ function StudentDashboardView({ studentData, partnerName, partnerLogo, onLogout 
   const handleStudentChoice = async (choice: "Yes" | "No") => {
     try {
       const docRef = doc(db, "students", currentStudent.id);
-      // Guard: mark fileOpened only once if choice is Yes, preventing repeated additions
       const updates: any = { studentChoice: choice };
+      // Guard against multiple commission additions on repeated choice clicks
       if (choice === "Yes" && !currentStudent.fileOpened) {
         updates.fileOpened = true;
         updates.currentStage = "File Opening Done";
@@ -912,7 +912,7 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
   const [ieltsScore, setIeltsScore] = useState("");
   const [budget, setBudget] = useState("");
 
-  // Customized fees fields in student form
+  // Default fees initialized from partner data
   const [customFileFee, setCustomFileFee] = useState("2000");
   const [customVisaFee, setCustomVisaFee] = useState("5000");
 
@@ -942,14 +942,15 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
     return () => unsub();
   }, [partnerName]);
 
-  const handlePhoneSearchTrack = async (e: FormEvent) => {
+  // Fixed live tracking query to scan Firestore correctly
+  const handlePhoneSearchTrack = (e: FormEvent) => {
     e.preventDefault();
     setHasSearched(true);
     const q = query(collection(db, "students"));
     onSnapshot(q, (snapshot) => {
       const match = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .find((s: any) => s.phone === searchPhoneInput.trim());
+        .find((s: any) => s.phone?.trim() === searchPhoneInput.trim());
       setTrackedStudent(match || null);
     });
   };
@@ -1094,25 +1095,7 @@ function AssessmentFormView({ partnerName, partnerLogo, onAssessmentComplete }: 
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>IELTS Score / Status <input value={ieltsScore} onChange={e => setIeltsScore(e.target.value)} placeholder="e.g. Overall 6.5 or Not Taken" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
         <label style={{ fontSize: "13px", fontWeight: "bold" }}>Budget <input value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g. 15 Lakh BDT" style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} /></label>
 
-        {/* Customized Charges Inputs inside student form */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "4px" }}>
-          <label style={{ fontSize: "13px", fontWeight: "bold" }}>
-            File Opening Fee (BDT):
-            <input 
-              value={customFileFee} 
-              onChange={e => setCustomFileFee(e.target.value)} 
-              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} 
-            />
-          </label>
-          <label style={{ fontSize: "13px", fontWeight: "bold" }}>
-            After Visa Fee (BDT):
-            <input 
-              value={customVisaFee} 
-              onChange={e => setCustomVisaFee(e.target.value)} 
-              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ddd" }} 
-            />
-          </label>
-        </div>
+        {/* Removed fee inputs from student UI view; handled internally via state */}
 
         <button className="primary-button" type="submit" disabled={loading} style={{ marginTop: "12px", padding: "12px", background: "#d40511", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>
           {loading ? "Submitting..." : "Submit Assessment & Lock Dedicated Dashboard"}
