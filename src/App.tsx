@@ -92,7 +92,6 @@ function QrCode({ value }: { value: string }) {
     </div>
   );
 }
-
 function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo }: { onPortal: (partnerName?: string) => void; activePartner: string; setActivePartner: (name: string) => void; setPartnerLogo: (logo: string | null) => void }) {
   const [currentAdminView, setCurrentAdminView] = useState<AdminView>("overview");
   const [showForm, setShowForm] = useState(false);
