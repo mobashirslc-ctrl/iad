@@ -100,7 +100,7 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
   const [copiedQr, setCopiedQr] = useState(false);
   const [partnersList, setPartnersList] = useState<any[]>([]);
   const [studentsList, setStudentsList] = useState<any[]>([]);
-
+const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [orgName, setOrgName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [contact, setContact] = useState("");
@@ -457,16 +457,16 @@ function AdminPanel({ onPortal, activePartner, setActivePartner, setPartnerLogo 
                             <td><Badge tone="blue">{s.currentStage || "Assessment Submitted (Waiting)"}</Badge></td>
                             <td><Badge tone={s.studentChoice === "Yes" ? "green" : s.studentChoice === "No" ? "red" : "amber"}>{s.studentChoice || "Pending"}</Badge></td>
                             <td>
-                              <button
+<button
   className="primary-button"
   style={{ padding: "6px 12px" }}
   onClick={() => {
     setSelectedStudentForAction(s);
     setAssessmentResultText(s.assessmentResultText || "");
     setAppointmentDetails(s.appointmentDetails || "");
-    setFileOpeningFee(s.fileOpeningFee || "");
-    setAfterVisaFee(s.afterVisaFee || "");
-    setIsProfileModalOpen(true); // <--- এই লাইনটি যুক্ত করে দিন (আপনার প্রফাইল ওপেন করার স্টেট অনুযায়ী নাম হতে পারে)
+    setFileOpeningFee(s.fileOpeningFee || "2000");
+    setAfterVisaFee(s.afterVisaFee || "5000");
+    setIsProfileModalOpen(true); // <--- এই লাইনটি যুক্ত করে দিন
   }}
 >
   View Profile & Stages
