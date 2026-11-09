@@ -2,7 +2,7 @@ import { FormEvent, ReactNode, useMemo, useState, useEffect, useRef } from "reac
 import { db } from "./firebase";
 import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import html2canvas from "html2canvas";
-
+import { QRCodeSVG } from "qrcode.react";
 // Provided Cloudinary Official EduAimers Logo URL
 const EDUAIMERS_LOGO_URL = "https://res.cloudinary.com/ddziennkh/image/upload/v1794215144/Artboard_1_gwsk5n.png";
 
@@ -85,18 +85,19 @@ function Badge({ children, tone = "green" }: { children: ReactNode; tone?: "gree
 }
 
 function QrCode({ value }: { value: string }) {
-  const encoded = useMemo(() => {
-    let hash = 0;
-    for (let i = 0; i < value.length; i++) hash = (hash << 5) - hash + value.charCodeAt(i);
-    const arr: [number, number][] = [];
-    for (let y = 0; y < 25; y++)
-      for (let x = 0; x < 25; x++) {
-        const finder = (x < 7 && y < 7) || (x > 17 && y < 7) || (x < 7 && y > 17);
-        if (!finder && Math.abs(Math.sin(hash + x * y * 37)) > 0.55) arr.push([x, y]);
-      }
-    return arr;
-  }, [value]);
-
+  return (
+    <div style={{ background: "#fff", padding: "8px", borderRadius: "4px" }}>
+      <QRCodeSVG
+        value={value}
+        size={160}
+        bgColor={"#FFFFFF"}
+        fgColor={"#000000"}
+        level={"H"}
+        includeMargin={false}
+      />
+    </div>
+  );
+}
   return (
     <svg viewBox="0 0 25 25" shapeRendering="crispEdges" aria-label="Dynamic QR code" style={{ width: "160px", height: "160px", display: "block", margin: "0 auto" }}>
       <rect width="25" height="25" fill="white" />
